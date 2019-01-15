@@ -91,10 +91,10 @@ namespace Graphs
 
             this.EndsOfEdge[1].Inheritors[Nodes[0].IndexOfNode] = true;
 
-            NameofEdge = Nodes[0].NameOfNode + Nodes[1].NameOfNode;
+            NameOfEdge = Nodes[0].NameOfNode + Nodes[1].NameOfNode;
         }
         public List<Node> EndsOfEdge { get; private set; }
-        public string NameofEdge { get; private set; }
+        public string NameOfEdge { get; private set; }
         public double WeightOfEdge { get; set; }
         public int IndexOfEdge { get; set; }
         public Node this[int Index]
@@ -122,7 +122,7 @@ namespace Graphs
             {
                 WeightOfEdge = this.WeightOfEdge,
 
-                NameofEdge = this.NameofEdge,
+                NameOfEdge = this.NameOfEdge,
 
                 IndexOfEdge = this.IndexOfEdge,
 
@@ -135,7 +135,7 @@ namespace Graphs
         {
             EndsOfEdge = new List<Node>();
 
-            NameofEdge = string.Empty;
+            NameOfEdge = string.Empty;
 
             WeightOfEdge = 0.0;
 
@@ -608,7 +608,7 @@ namespace Graphs
 
             Console.WriteLine("3 : Kruskal Tree Search\n");
 
-            Console.WriteLine(string.Join(" => ", KruskalTreeSearch.MinimumSpanningTree.Select(Edges => Edges.NameofEdge)));
+            Console.WriteLine(string.Join(" => ", KruskalTreeSearch.MinimumSpanningTree.Select(Edges => Edges.NameOfEdge)));
 
             Console.WriteLine();
 
@@ -618,7 +618,7 @@ namespace Graphs
 
             Console.WriteLine("4 : Prim Tree Search\n");
 
-            Console.WriteLine(string.Join(" => ", PrimTreeSearch.MinimumSpanningTree.Select(Edges => Edges.NameofEdge)));
+            Console.WriteLine(string.Join(" => ", PrimTreeSearch.MinimumSpanningTree.Select(Edges => Edges.NameOfEdge)));
 
             Console.WriteLine();
 
