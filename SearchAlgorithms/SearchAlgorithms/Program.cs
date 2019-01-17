@@ -25,6 +25,16 @@ namespace Graphs
 
             return false;
         }
+        public Node(int NumberOfNodes, string NameOfNode)
+        {
+            Inheritors = new bool[NumberOfNodes];
+
+            this.NameOfNode = NameOfNode;
+
+            WeightOfNode = 0.0;
+
+            IndexOfNode = 0;
+        }
         public override bool Equals(object Object)
         {
             Node Node = (Node)Object;
@@ -36,16 +46,6 @@ namespace Graphs
         public override int GetHashCode()
         {
             return base.GetHashCode();
-        }
-        public Node(int NumberOfNodes)
-        {
-            Inheritors = new bool[NumberOfNodes];
-
-            NameOfNode = string.Empty;
-
-            WeightOfNode = 0.0;
-
-            IndexOfNode = 0;
         }
         public int IndexOfNode { get; set; }
         public bool[] Inheritors { get; set; }
@@ -68,28 +68,30 @@ namespace Graphs
         {
             NameOfNode = string.Empty;
 
-            Inheritors = null;
-
             WeightOfNode = 0.0;
 
             IndexOfNode = 0;
+
+            Inheritors = null;
         }
     }
 
     public class Edge : ICloneable
     {
-        public void CreateEdge(double WeightOfEdge, params Node[] Nodes)
+        public Edge(double WeightOfEdge, params Node[] Nodes)
         {
+            EndsOfEdge = new List<Node>();
+
             for (int Index = 0; Index < Nodes.Length; Index++)
             {
-                this.EndsOfEdge.Add(Nodes[Index]);
+                EndsOfEdge.Add(Nodes[Index]);
             }
 
             this.WeightOfEdge = WeightOfEdge;
 
-            this.EndsOfEdge[0].Inheritors[Nodes[1].IndexOfNode] = true;
+            EndsOfEdge[0].Inheritors[Nodes[1].IndexOfNode] = true;
 
-            this.EndsOfEdge[1].Inheritors[Nodes[0].IndexOfNode] = true;
+            EndsOfEdge[1].Inheritors[Nodes[0].IndexOfNode] = true;
 
             NameOfEdge = Nodes[0].NameOfNode + Nodes[1].NameOfNode;
         }
@@ -157,8 +159,21 @@ namespace Graphs
                 WeightOfEdge = double.PositiveInfinity
             };
         }
-        public List<Node> SetOfNodes { get; set; }
-        public List<Edge> SetOfEdges { get; set; }
+        public List<Node> SetOfNodes { get; private set; }
+        public List<Edge> SetOfEdges { get; private set; }
+        public void AddNode(Node Node)
+        {
+            SetOfNodes.Add(Node);
+
+            SetOfNodes[SetOfNodes.Count - 1].IndexOfNode = SetOfNodes.Count - 1;
+        }
+        public void AddEdge(Edge Edge)
+        {
+            SetOfEdges.Add(Edge);
+
+            SetOfEdges[SetOfEdges.Count - 1].IndexOfEdge = SetOfEdges.Count - 1;
+        }
+        private double Infinity { get; set; }
         public object Clone()
         {
             List<Node> SetOfNodes = new List<Node>();
@@ -189,6 +204,8 @@ namespace Graphs
             SetOfNodes = new List<Node>();
 
             SetOfEdges = new List<Edge>();
+
+            Infinity = double.PositiveInfinity;
         }
     }
 
@@ -523,6 +540,21 @@ namespace Graphs
         private double Infinity { get; set; }
     }
 
+    public class JohnsonAlgorithm
+    {
+        private static Graph CopiedGraph { get; set; }
+        public JohnsonAlgorithm(Graph Graph)
+        {
+            CopiedGraph = (Graph)Graph.Clone();
+
+            SubGraph = (Graph)Graph.Clone();
+        }
+        private static Graph SubGraph { get; set; }
+        public void JohnsonPathSearch()
+        {
+            CopiedGraph.SetOfNodes.Add(new Node());
+        }
+    }
     class Program
     {
         private static Graph Graph = new Graph();
@@ -530,45 +562,39 @@ namespace Graphs
         {
             for (int Index = 0; Index < 7; Index++)
             {
-                Graph.SetOfNodes.Add(new Node(7));
-
-                Graph.SetOfNodes[Index].IndexOfNode = Index;
+                Graph.AddNode(new Node(7, Convert.ToString(Index)));
             }
 
-            for (int Index = 0; Index < 11; Index++)
-            {
-                Graph.SetOfEdges.Add(new Edge());
-
-                Graph.SetOfEdges[Index].IndexOfEdge = Index;
-            }
-
-            Graph.SetOfNodes[0].NameOfNode = "A";
-            Graph.SetOfNodes[1].NameOfNode = "B";
-            Graph.SetOfNodes[2].NameOfNode = "C";
-            Graph.SetOfNodes[3].NameOfNode = "D";
-            Graph.SetOfNodes[4].NameOfNode = "E";
-            Graph.SetOfNodes[5].NameOfNode = "F";
-            Graph.SetOfNodes[6].NameOfNode = "G";
-
-            Graph.SetOfEdges[0].CreateEdge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[1]);
-            Graph.SetOfEdges[1].CreateEdge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[3]);
-            Graph.SetOfEdges[2].CreateEdge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[2]);
-            Graph.SetOfEdges[3].CreateEdge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[4]);
-            Graph.SetOfEdges[4].CreateEdge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[3]);
-            Graph.SetOfEdges[5].CreateEdge(0, Graph.SetOfNodes[2], Graph.SetOfNodes[4]);
-            Graph.SetOfEdges[6].CreateEdge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[4]);
-            Graph.SetOfEdges[7].CreateEdge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[5]);
-            Graph.SetOfEdges[8].CreateEdge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[4]);
-            Graph.SetOfEdges[9].CreateEdge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[6]);
-            Graph.SetOfEdges[10].CreateEdge(0, Graph.SetOfNodes[6], Graph.SetOfNodes[4]);
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[1]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[3]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[2]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[4]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[3]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[2], Graph.SetOfNodes[4]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[4]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[5]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[4]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[6]));
+            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[6], Graph.SetOfNodes[4]));
 
             Console.WriteLine("Current Graph\n");
 
-            StreamReader Reader = new StreamReader("C:\\Users\\Gleb\\Desktop\\Graph.txt");
-
-            Console.WriteLine(Reader.ReadToEnd());
-
-            Reader.Close();
+            Console.WriteLine("(0)        (2)");
+            Console.WriteLine("|\\         /|");
+            Console.WriteLine("| \\ 7    8/ |");
+            Console.WriteLine("|  \\     /  |5");
+            Console.WriteLine("|5  \\   /   |");
+            Console.WriteLine("|    (1)    |");
+            Console.WriteLine("| 9 /   \\7  |");
+            Console.WriteLine("|  /     \\  |");
+            Console.WriteLine("| /   15  \\ |");
+            Console.WriteLine("(3)--------(4)");
+            Console.WriteLine(" \\        /  \\ ");
+            Console.WriteLine("  \\     8/    \\9");
+            Console.WriteLine(" 6 \\    /      \\");
+            Console.WriteLine("    \\  /        \\");
+            Console.WriteLine("    (5)---------(6)");
+            Console.WriteLine("           11");
 
             DepthFirstSearchAlgorithm DFS = new DepthFirstSearchAlgorithm(Graph);
 
@@ -655,7 +681,7 @@ namespace Graphs
                 Console.Write($"{Graph.SetOfNodes[Index].NameOfNode}\t");
             }
 
-            Console.WriteLine();
+            Console.WriteLine("\n");
 
             for (int FirstIndex = 0; FirstIndex < Graph.SetOfNodes.Count; FirstIndex++)
             {
