@@ -27,7 +27,7 @@ namespace Graphs
         }
         public Node(int NumberOfNodes, string NameOfNode)
         {
-            Inheritors = new bool[NumberOfNodes];
+            Inheritors = new bool[NumberOfNodes + 1];
 
             this.NameOfNode = NameOfNode;
 
@@ -93,7 +93,7 @@ namespace Graphs
 
             EndsOfEdge[1].Inheritors[Nodes[0].IndexOfNode] = true;
 
-            NameOfEdge = Nodes[0].NameOfNode + Nodes[1].NameOfNode;
+            NameOfEdge = $"[{Nodes[0].NameOfNode}|{Nodes[1].NameOfNode}]";
         }
         public List<Node> EndsOfEdge { get; private set; }
         public string NameOfEdge { get; private set; }
@@ -159,19 +159,31 @@ namespace Graphs
                 WeightOfEdge = double.PositiveInfinity
             };
         }
+        public int NumberOfNodes { get { return SetOfNodes.Count; } }
+        public int NumberOfEdges { get { return SetOfEdges.Count; } }
         public List<Node> SetOfNodes { get; private set; }
         public List<Edge> SetOfEdges { get; private set; }
+        public void AddOneWayEdge(Edge Edge)
+        {
+            SetOfEdges.Add(Edge);
+
+            SetOfEdges[SetOfEdges.Count - 1].IndexOfEdge = SetOfEdges.Count - 1;
+        }
+        public void AddTwoWayEdge(Edge Edge)
+        {
+            SetOfEdges.Add(Edge);
+
+            SetOfEdges[SetOfEdges.Count - 1].IndexOfEdge = SetOfEdges.Count - 1;
+
+            SetOfEdges.Add(new Edge(Edge.WeightOfEdge, Edge[1], Edge[0]));
+
+            SetOfEdges[SetOfEdges.Count - 1].IndexOfEdge = SetOfEdges.Count - 1;
+        }
         public void AddNode(Node Node)
         {
             SetOfNodes.Add(Node);
 
             SetOfNodes[SetOfNodes.Count - 1].IndexOfNode = SetOfNodes.Count - 1;
-        }
-        public void AddEdge(Edge Edge)
-        {
-            SetOfEdges.Add(Edge);
-
-            SetOfEdges[SetOfEdges.Count - 1].IndexOfEdge = SetOfEdges.Count - 1;
         }
         private double Infinity { get; set; }
         public object Clone()
@@ -412,9 +424,12 @@ namespace Graphs
 
             for (int FirstIndex = 1; FirstIndex < CopiedGraph.SetOfNodes.Count - 1; FirstIndex++)
             {
-                foreach (var Edge in CopiedGraph.SetOfEdges.Where(CurrentEdge => Pathes[CopiedGraph.SetOfEdges[CurrentEdge.IndexOfEdge][1].IndexOfNode].WeightOfNode > Pathes[CopiedGraph.SetOfEdges[CurrentEdge.IndexOfEdge][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[CurrentEdge.IndexOfEdge].WeightOfEdge))
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfEdges.Count; SecondIndex++)
                 {
-                    Pathes[CopiedGraph.SetOfEdges[Edge.IndexOfEdge][1].IndexOfNode].WeightOfNode = Pathes[CopiedGraph.SetOfEdges[Edge.IndexOfEdge][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[Edge.IndexOfEdge].WeightOfEdge;
+                    if (Pathes[CopiedGraph.SetOfEdges[SecondIndex][1].IndexOfNode].WeightOfNode > Pathes[CopiedGraph.SetOfEdges[SecondIndex][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge)
+                    {
+                        Pathes[CopiedGraph.SetOfEdges[SecondIndex][1].IndexOfNode].WeightOfNode = Pathes[CopiedGraph.SetOfEdges[SecondIndex][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge;
+                    }
                 }
             }
         }
@@ -426,8 +441,8 @@ namespace Graphs
 
             Infinity = double.PositiveInfinity;
         }
-        public List<Node> Pathes { get; private set; }
         private static Graph CopiedGraph { get; set; }
+        public List<Node> Pathes { get; private set; }
         private double Infinity { get; set; }
     }
 
@@ -542,17 +557,25 @@ namespace Graphs
 
     public class JohnsonAlgorithm
     {
+        private static BellmanFordAlgorithm Bellman { get; set; }
         private static Graph CopiedGraph { get; set; }
+        private static Graph NewGraph { get; set; }
         public JohnsonAlgorithm(Graph Graph)
         {
             CopiedGraph = (Graph)Graph.Clone();
 
-            SubGraph = (Graph)Graph.Clone();
+            NewGraph = (Graph)Graph.Clone();
+
+            Bellman = new BellmanFordAlgorithm(CopiedGraph);
         }
-        private static Graph SubGraph { get; set; }
         public void JohnsonPathSearch()
         {
-            CopiedGraph.SetOfNodes.Add(new Node());
+            CopiedGraph.AddNode(new Node(CopiedGraph.SetOfNodes.Count, "Temporary"));
+
+            for (int Index = 0; Index < CopiedGraph.SetOfNodes.Count - 1; Index++)
+            {
+                CopiedGraph.AddTwoWayEdge(new Edge(0, CopiedGraph.SetOfNodes[CopiedGraph.SetOfNodes.Count - 1], CopiedGraph.SetOfNodes[Index]));
+            }
         }
     }
     class Program
@@ -565,17 +588,17 @@ namespace Graphs
                 Graph.AddNode(new Node(7, Convert.ToString(Index)));
             }
 
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[1]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[0], Graph.SetOfNodes[3]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[2]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[4]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[1], Graph.SetOfNodes[3]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[2], Graph.SetOfNodes[4]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[4]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[3], Graph.SetOfNodes[5]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[4]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[5], Graph.SetOfNodes[6]));
-            Graph.AddEdge(new Edge(0, Graph.SetOfNodes[6], Graph.SetOfNodes[4]));
+            Graph.AddTwoWayEdge(new Edge(7, Graph.SetOfNodes[0], Graph.SetOfNodes[1]));
+            Graph.AddTwoWayEdge(new Edge(5, Graph.SetOfNodes[0], Graph.SetOfNodes[3]));
+            Graph.AddTwoWayEdge(new Edge(8, Graph.SetOfNodes[1], Graph.SetOfNodes[2]));
+            Graph.AddTwoWayEdge(new Edge(7, Graph.SetOfNodes[1], Graph.SetOfNodes[4]));
+            Graph.AddTwoWayEdge(new Edge(9, Graph.SetOfNodes[1], Graph.SetOfNodes[3]));
+            Graph.AddTwoWayEdge(new Edge(5, Graph.SetOfNodes[2], Graph.SetOfNodes[4]));
+            Graph.AddTwoWayEdge(new Edge(15, Graph.SetOfNodes[3], Graph.SetOfNodes[4]));
+            Graph.AddTwoWayEdge(new Edge(6, Graph.SetOfNodes[3], Graph.SetOfNodes[5]));
+            Graph.AddTwoWayEdge(new Edge(8, Graph.SetOfNodes[5], Graph.SetOfNodes[4]));
+            Graph.AddTwoWayEdge(new Edge(11, Graph.SetOfNodes[5], Graph.SetOfNodes[6]));
+            Graph.AddTwoWayEdge(new Edge(9, Graph.SetOfNodes[6], Graph.SetOfNodes[4]));
 
             Console.WriteLine("Current Graph\n");
 
@@ -616,17 +639,17 @@ namespace Graphs
 
             Console.WriteLine();
 
-            Graph.SetOfEdges[0].WeightOfEdge = 7;
-            Graph.SetOfEdges[1].WeightOfEdge = 5;
-            Graph.SetOfEdges[2].WeightOfEdge = 8;
-            Graph.SetOfEdges[3].WeightOfEdge = 7;
-            Graph.SetOfEdges[4].WeightOfEdge = 9;
-            Graph.SetOfEdges[5].WeightOfEdge = 5;
-            Graph.SetOfEdges[6].WeightOfEdge = 15;
-            Graph.SetOfEdges[7].WeightOfEdge = 6;
-            Graph.SetOfEdges[8].WeightOfEdge = 8;
-            Graph.SetOfEdges[9].WeightOfEdge = 11;
-            Graph.SetOfEdges[10].WeightOfEdge = 9;
+            //Graph.SetOfEdges[0].WeightOfEdge = 7;
+            //Graph.SetOfEdges[1].WeightOfEdge = 5;
+            //Graph.SetOfEdges[2].WeightOfEdge = 8;
+            //Graph.SetOfEdges[3].WeightOfEdge = 7;
+            //Graph.SetOfEdges[4].WeightOfEdge = 9;
+            //Graph.SetOfEdges[5].WeightOfEdge = 5;
+            //Graph.SetOfEdges[6].WeightOfEdge = 15;
+            //Graph.SetOfEdges[7].WeightOfEdge = 6;
+            //Graph.SetOfEdges[8].WeightOfEdge = 8;
+            //Graph.SetOfEdges[9].WeightOfEdge = 11;
+            //Graph.SetOfEdges[10].WeightOfEdge = 9;
 
             KruscalAlgorithm KruskalTreeSearch = new KruscalAlgorithm(Graph);
 
@@ -652,7 +675,7 @@ namespace Graphs
 
             BellmanFordAlgorithm BellmanFordPathSearch = new BellmanFordAlgorithm(Graph);
 
-            BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[0]);
+            BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[1]);
 
             Console.Write($"{Graph.SetOfNodes[0].NameOfNode} => ");
 
@@ -694,6 +717,10 @@ namespace Graphs
 
                 Console.WriteLine();
             }
+
+            JohnsonAlgorithm JohnsonPathSearch = new JohnsonAlgorithm(Graph);
+
+            JohnsonPathSearch.JohnsonPathSearch();
 
             Console.ReadKey();
         }
