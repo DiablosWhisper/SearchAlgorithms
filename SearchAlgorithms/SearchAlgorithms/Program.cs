@@ -162,6 +162,17 @@ namespace Graphs
                 WeightOfEdge = double.PositiveInfinity
             };
         }
+        public bool CheckResultForNegativeCycles(List<Node> Edges)
+        {
+            for (int Index = 0; Index < NumberOfEdges; Index++)
+            {
+                if (Edges[SetOfEdges[Index][1].IndexOfNode].WeightOfNode > Edges[SetOfEdges[Index][0].IndexOfNode].WeightOfNode + SetOfEdges[Index].WeightOfEdge)
+                {
+                    return false;
+                }
+            }
+            return true;
+        }
         public int NumberOfNodes { get { return SetOfNodes.Count; } }
         public int NumberOfEdges { get { return SetOfEdges.Count; } }
         public List<Node> SetOfNodes { get; private set; }
