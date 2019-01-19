@@ -149,9 +149,12 @@ namespace Graphs
     {
         public Edge GetEdge(Node TheBeginningOfEdge, Node TheEndOfEdge)
         {
-            foreach (Edge Edge in SetOfEdges.Where(CurrentEdge => CurrentEdge[0].Equals(TheBeginningOfEdge) && CurrentEdge[1].Equals(TheEndOfEdge) || CurrentEdge[0].Equals(TheEndOfEdge) && CurrentEdge[1].Equals(TheBeginningOfEdge)))
+            for (int Index = 0; Index < NumberOfEdges; Index++)
             {
-                return Edge;
+                if (SetOfEdges[Index][0].Equals(TheBeginningOfEdge) && SetOfEdges[Index][1].Equals(TheEndOfEdge) || SetOfEdges[Index][0].Equals(TheEndOfEdge) && SetOfEdges[Index][1].Equals(TheBeginningOfEdge))
+                {
+                    return SetOfEdges[Index];
+                }
             }
 
             return new Edge
@@ -190,16 +193,16 @@ namespace Graphs
         {
             List<Node> SetOfNodes = new List<Node>();
 
-            foreach (var Node in this.SetOfNodes)
+            for (int Index = 0; Index < NumberOfNodes; Index++)
             {
-                SetOfNodes.Add((Node)Node.Clone());
+                SetOfNodes.Add((Node)this.SetOfNodes[Index].Clone());
             }
 
             List<Edge> SetOfEdges = new List<Edge>();
 
-            foreach (var Edge in this.SetOfEdges)
+            for (int Index = 0; Index < NumberOfEdges; Index++)
             {
-                SetOfEdges.Add((Edge)Edge.Clone());
+                SetOfEdges.Add((Edge)this.SetOfEdges[Index].Clone());
             }
 
             Graph Graph = new Graph
@@ -233,7 +236,7 @@ namespace Graphs
         {
             VisitedNodes.Add(TheBeginningOfSearch);
 
-            for (int Index = 0; Index < CopiedGraph.SetOfNodes.Count; Index++)
+            for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
                 if (CopiedGraph.SetOfNodes[TheBeginningOfSearch.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(CopiedGraph.SetOfNodes[Index]))
                 {
@@ -265,7 +268,7 @@ namespace Graphs
             {
                 TheBeginningOfSearch = QueuedNodes.Dequeue();
 
-                for (int Index = 0; Index < CopiedGraph.SetOfNodes.Count; Index++)
+                for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
                 {
                     if (CopiedGraph.SetOfNodes[TheBeginningOfSearch.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(CopiedGraph.SetOfNodes[Index]))
                     {
@@ -315,7 +318,7 @@ namespace Graphs
         {
             SortGraph();
 
-            for (int Index = 0; Index < CopiedGraph.SetOfEdges.Count; Index++)
+            for (int Index = 0; Index < CopiedGraph.NumberOfEdges; Index++)
             {
                 Node StartNode = FindSubTree(CopiedGraph.SetOfEdges[Index][0]);
 
@@ -333,9 +336,9 @@ namespace Graphs
         {
             Edge TemporaryEdge = new Edge();
 
-            for (int FirstIndex = 0; FirstIndex < CopiedGraph.SetOfEdges.Count; FirstIndex++)
+            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfEdges; FirstIndex++)
             {
-                for (int SecondIndex = FirstIndex + 1; SecondIndex < CopiedGraph.SetOfEdges.Count; SecondIndex++)
+                for (int SecondIndex = FirstIndex + 1; SecondIndex < CopiedGraph.NumberOfEdges; SecondIndex++)
                 {
                     if (CopiedGraph.SetOfEdges[FirstIndex].WeightOfEdge > CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge)
                     {
@@ -369,11 +372,11 @@ namespace Graphs
 
             CopiedGraph.SetOfNodes.RemoveAt(VisitedNodes[0].IndexOfNode);
 
-            for (; CopiedGraph.SetOfNodes.Count > 0;)
+            for (; CopiedGraph.NumberOfNodes > 0;)
             {
                 int IndexOfTheEasiestEdge = -1;
 
-                for (int Index = 0; Index < CopiedGraph.SetOfEdges.Count; Index++)
+                for (int Index = 0; Index < CopiedGraph.NumberOfEdges; Index++)
                 {
                     if (!VisitedNodes.IndexOf(CopiedGraph.SetOfEdges[Index][0]).Equals(-1) && !CopiedGraph.SetOfNodes.IndexOf(CopiedGraph.SetOfEdges[Index][1]).Equals(-1) || !VisitedNodes.IndexOf(CopiedGraph.SetOfEdges[Index][1]).Equals(-1) && !CopiedGraph.SetOfNodes.IndexOf(CopiedGraph.SetOfEdges[Index][0]).Equals(-1))
                     {
@@ -415,21 +418,21 @@ namespace Graphs
     {
         public void BellmanFordPathSearch(Node TheBeginningOfSearch)
         {
-            foreach (Node Node in Pathes)
+            for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
-                Pathes[Node.IndexOfNode].WeightOfNode = Infinity;
+                Pathes[Index].WeightOfNode = Infinity;
             }
 
             Pathes[TheBeginningOfSearch.IndexOfNode].WeightOfNode = 0;
 
-            for (int FirstIndex = 1; FirstIndex < CopiedGraph.SetOfNodes.Count - 1; FirstIndex++)
+            for (int FirstIndex = 1; FirstIndex < CopiedGraph.NumberOfNodes - 1; FirstIndex++)
             {
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfEdges.Count; SecondIndex++)
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfEdges; SecondIndex++)
                 {
-                    if (Pathes[CopiedGraph.SetOfEdges[SecondIndex][1].IndexOfNode].WeightOfNode > Pathes[CopiedGraph.SetOfEdges[SecondIndex][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge)
-                    {
+                     if (Pathes[CopiedGraph.SetOfEdges[SecondIndex][1].IndexOfNode].WeightOfNode > Pathes[CopiedGraph.SetOfEdges[SecondIndex][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge)
+                     {
                         Pathes[CopiedGraph.SetOfEdges[SecondIndex][1].IndexOfNode].WeightOfNode = Pathes[CopiedGraph.SetOfEdges[SecondIndex][0].IndexOfNode].WeightOfNode + CopiedGraph.SetOfEdges[SecondIndex].WeightOfEdge;
-                    }
+                     }
                 }
             }
         }
@@ -450,14 +453,14 @@ namespace Graphs
     {
         public void DijkstraPathSearch(Node TheBeginningOfSearch)
         {
-            foreach (Node Node in CopiedGraph.SetOfNodes)
+            for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
-                Pathes[Node.IndexOfNode].WeightOfNode = Infinity;
+                Pathes[Index].WeightOfNode = Infinity;
             }
 
             Pathes[TheBeginningOfSearch.IndexOfNode].WeightOfNode = 0;
 
-            for (int FirstIndex = 0; FirstIndex < CopiedGraph.SetOfNodes.Count - 1; FirstIndex++)
+            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes - 1; FirstIndex++)
             {
                 Node TemporaryNode = new Node
                 {
@@ -466,7 +469,7 @@ namespace Graphs
 
                 TemporaryNode.WeightOfNode = Infinity;
 
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfNodes.Count; SecondIndex++)
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
                 {
                     if (!VisitedNodes.Contains(Pathes[SecondIndex]) && Pathes[SecondIndex].WeightOfNode <= TemporaryNode.WeightOfNode)
                     {
@@ -478,7 +481,7 @@ namespace Graphs
 
                 VisitedNodes.Add(Pathes[Index]);
 
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfNodes.Count; SecondIndex++)
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
                 {
                     if (!VisitedNodes.Contains(Pathes[SecondIndex]) && CopiedGraph.SetOfNodes[Index].Inheritors[SecondIndex].Equals(true) && !Pathes[Index].WeightOfNode.Equals(Infinity) && Pathes[SecondIndex].WeightOfNode > Pathes[Index].WeightOfNode + CopiedGraph.GetEdge(CopiedGraph.SetOfNodes[Index], CopiedGraph.SetOfNodes[SecondIndex]).WeightOfEdge)
                     {
@@ -509,15 +512,15 @@ namespace Graphs
         public double[,] MatrixOfShortesPathes { get; private set; }
         public FloydWarshallAlgorithm(Graph Graph)
         {
-            MatrixOfShortesPathes = new double[Graph.SetOfNodes.Count, Graph.SetOfNodes.Count];
+            MatrixOfShortesPathes = new double[Graph.NumberOfNodes, Graph.NumberOfNodes];
 
             CopiedGraph = (Graph)Graph.Clone();
 
             Infinity = double.PositiveInfinity;
 
-            for (int FirstIndex = 0; FirstIndex < CopiedGraph.SetOfNodes.Count; FirstIndex++)
+            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes; FirstIndex++)
             {
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfNodes.Count; SecondIndex++)
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
                 {
                     if (CopiedGraph.SetOfNodes[FirstIndex].Inheritors[SecondIndex].Equals(true))
                     {
@@ -533,16 +536,16 @@ namespace Graphs
         private static Graph CopiedGraph { get; set; }
         public void FloydWarshallPathSearch()
         {
-            for (int Index = 0; Index < CopiedGraph.SetOfNodes.Count; Index++)
+            for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
                 MatrixOfShortesPathes[Index, Index] = 0;
             }
 
-            for (int FirstIndex = 0; FirstIndex < CopiedGraph.SetOfNodes.Count; FirstIndex++)
+            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes; FirstIndex++)
             {
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.SetOfNodes.Count; SecondIndex++)
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
                 {
-                    for (int ThirdIndex = 0; ThirdIndex < CopiedGraph.SetOfNodes.Count; ThirdIndex++)
+                    for (int ThirdIndex = 0; ThirdIndex < CopiedGraph.NumberOfNodes; ThirdIndex++)
                     {
                         if (MatrixOfShortesPathes[SecondIndex, ThirdIndex] > MatrixOfShortesPathes[SecondIndex, FirstIndex] + MatrixOfShortesPathes[FirstIndex, ThirdIndex])
                         {
@@ -557,24 +560,31 @@ namespace Graphs
 
     public class JohnsonAlgorithm
     {
-        private static BellmanFordAlgorithm Bellman { get; set; }
+        private static BellmanFordAlgorithm BellmanFordPathSearch { get; set; }
+        private static DijkstraAlgorithm DijkstraPathSearch { get; set; }
+        public double[,] MatrixOfShortesPathes { get; private set; }
         private static Graph CopiedGraph { get; set; }
         private static Graph NewGraph { get; set; }
         public JohnsonAlgorithm(Graph Graph)
         {
+            MatrixOfShortesPathes = new double[Graph.NumberOfNodes + 1, Graph.NumberOfNodes + 1];
+
             CopiedGraph = (Graph)Graph.Clone();
 
             NewGraph = (Graph)Graph.Clone();
-
-            Bellman = new BellmanFordAlgorithm(CopiedGraph);
         }
         public void JohnsonPathSearch()
         {
-            CopiedGraph.AddNode(new Node(CopiedGraph.SetOfNodes.Count, "Temporary"));
-
-            for (int Index = 0; Index < CopiedGraph.SetOfNodes.Count - 1; Index++)
+            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes; FirstIndex++)
             {
-                CopiedGraph.AddTwoWayEdge(new Edge(0, CopiedGraph.SetOfNodes[CopiedGraph.SetOfNodes.Count - 1], CopiedGraph.SetOfNodes[Index]));
+                DijkstraPathSearch = new DijkstraAlgorithm(CopiedGraph);
+
+                DijkstraPathSearch.DijkstraPathSearch(CopiedGraph.SetOfNodes[FirstIndex]);
+
+                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
+                {
+                    MatrixOfShortesPathes[FirstIndex,SecondIndex] = DijkstraPathSearch.Pathes[SecondIndex].WeightOfNode;
+                }
             }
         }
     }
@@ -639,18 +649,6 @@ namespace Graphs
 
             Console.WriteLine();
 
-            //Graph.SetOfEdges[0].WeightOfEdge = 7;
-            //Graph.SetOfEdges[1].WeightOfEdge = 5;
-            //Graph.SetOfEdges[2].WeightOfEdge = 8;
-            //Graph.SetOfEdges[3].WeightOfEdge = 7;
-            //Graph.SetOfEdges[4].WeightOfEdge = 9;
-            //Graph.SetOfEdges[5].WeightOfEdge = 5;
-            //Graph.SetOfEdges[6].WeightOfEdge = 15;
-            //Graph.SetOfEdges[7].WeightOfEdge = 6;
-            //Graph.SetOfEdges[8].WeightOfEdge = 8;
-            //Graph.SetOfEdges[9].WeightOfEdge = 11;
-            //Graph.SetOfEdges[10].WeightOfEdge = 9;
-
             KruscalAlgorithm KruskalTreeSearch = new KruscalAlgorithm(Graph);
 
             KruskalTreeSearch.KruscalTreeSearch();
@@ -675,7 +673,7 @@ namespace Graphs
 
             BellmanFordAlgorithm BellmanFordPathSearch = new BellmanFordAlgorithm(Graph);
 
-            BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[1]);
+            BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[0]);
 
             Console.Write($"{Graph.SetOfNodes[0].NameOfNode} => ");
 
@@ -718,9 +716,34 @@ namespace Graphs
                 Console.WriteLine();
             }
 
+            Console.WriteLine();
+
             JohnsonAlgorithm JohnsonPathSearch = new JohnsonAlgorithm(Graph);
 
             JohnsonPathSearch.JohnsonPathSearch();
+
+            Console.WriteLine("8 :Johnson Path Search\n");
+
+            Console.Write("\t");
+
+            for (int Index = 0; Index < Graph.SetOfNodes.Count; Index++)
+            {
+                Console.Write($"{Graph.SetOfNodes[Index].NameOfNode}\t");
+            }
+
+            Console.WriteLine("\n");
+
+            for (int FirstIndex = 0; FirstIndex < Graph.SetOfNodes.Count; FirstIndex++)
+            {
+                Console.Write($"{Graph.SetOfNodes[FirstIndex].NameOfNode}\t");
+
+                for (int SecondIndex = 0; SecondIndex < Graph.SetOfNodes.Count; SecondIndex++)
+                {
+                    Console.Write($"{JohnsonPathSearch.MatrixOfShortesPathes[FirstIndex, SecondIndex]} \t");
+                }
+
+                Console.WriteLine();
+            }
 
             Console.ReadKey();
         }
