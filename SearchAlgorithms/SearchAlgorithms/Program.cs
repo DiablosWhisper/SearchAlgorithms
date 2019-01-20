@@ -157,12 +157,9 @@ namespace Graphs
                 }
             }
 
-            return new Edge
-            {
-                WeightOfEdge = double.PositiveInfinity
-            };
+            return new Edge { WeightOfEdge = double.PositiveInfinity };
         }
-        public bool CheckResultForNegativeCycles(List<Node> Edges)
+        public bool DoesntContainNegativeWeightCycle(List<Node> Edges)
         {
             for (int Index = 0; Index < NumberOfEdges; Index++)
             {
@@ -237,6 +234,28 @@ namespace Graphs
 
     public class DepthFirstSearchAlgorithm
     {
+        public bool DFS(Node TheBeginningOfSearching, Node TheEndOfSearching)
+        {
+            VisitedNodes.Add(TheBeginningOfSearching);
+
+            if(VisitedNodes.Contains(TheEndOfSearching))
+            {
+                return true;
+            }
+
+            for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
+            {
+                if (CopiedGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(CopiedGraph.SetOfNodes[Index]))
+                {
+                    if (DFS(CopiedGraph.SetOfNodes[Index], TheEndOfSearching))
+                    {
+                        return true;
+                    }
+                }
+            }
+
+            return false;
+        }
         public DepthFirstSearchAlgorithm(Graph Graph)
         {
             CopiedGraph = (Graph)Graph.Clone();
@@ -261,6 +280,34 @@ namespace Graphs
 
     public class BreadthFirstSearchAlgorithm
     {
+        public bool BFS(Node TheBeginningOfSearching, Node TheEndOfSearching)
+        {
+            QueuedNodes.Enqueue(TheBeginningOfSearching);
+
+            VisitedNodes.Add(TheBeginningOfSearching);
+
+            for (; QueuedNodes.Count > 0;)
+            {
+                TheBeginningOfSearching = QueuedNodes.Dequeue();
+
+                for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
+                {
+                    if (CopiedGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(CopiedGraph.SetOfNodes[Index]))
+                    {
+                        if (VisitedNodes.Contains(TheEndOfSearching))
+                        {
+                            return true;
+                        }
+
+                        QueuedNodes.Enqueue(CopiedGraph.SetOfNodes[Index]);
+
+                        VisitedNodes.Add(CopiedGraph.SetOfNodes[Index]);
+                    }
+                }
+            }
+
+            return false;
+        }
         public BreadthFirstSearchAlgorithm(Graph Graph)
         {
             QueuedNodes = new Queue<Node>();
@@ -427,7 +474,7 @@ namespace Graphs
 
     public class BellmanFordAlgorithm
     {
-        public void BellmanFordPathSearch(Node TheBeginningOfSearch)
+        public bool BellmanFordPathSearch(Node TheBeginningOfSearch)
         {
             for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
@@ -446,6 +493,8 @@ namespace Graphs
                      }
                 }
             }
+
+            return CopiedGraph.DoesntContainNegativeWeightCycle(Pathes);
         }
         public BellmanFordAlgorithm(Graph Graph)
         {
@@ -462,7 +511,7 @@ namespace Graphs
 
     public class DijkstraAlgorithm
     {
-        public void DijkstraPathSearch(Node TheBeginningOfSearch)
+        public bool DijkstraPathSearch(Node TheBeginningOfSearch)
         {
             for (int Index = 0; Index < CopiedGraph.NumberOfNodes; Index++)
             {
@@ -473,10 +522,7 @@ namespace Graphs
 
             for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes - 1; FirstIndex++)
             {
-                Node TemporaryNode = new Node
-                {
-                    WeightOfNode = Infinity
-                };
+                Node TemporaryNode = new Node { WeightOfNode = Infinity };
 
                 TemporaryNode.WeightOfNode = Infinity;
 
@@ -500,6 +546,8 @@ namespace Graphs
                     }
                 }
             }
+
+            return CopiedGraph.DoesntContainNegativeWeightCycle(Pathes);
         }
         private static Graph CopiedGraph { get; set; }
         public List<Node> Pathes { get; private set; }
@@ -574,31 +622,70 @@ namespace Graphs
         private static BellmanFordAlgorithm BellmanFordPathSearch { get; set; }
         private static DijkstraAlgorithm DijkstraPathSearch { get; set; }
         public double[,] MatrixOfShortesPathes { get; private set; }
+        private static Graph CopyOfOriginalGraph { get; set; }
         private static Graph CopiedGraph { get; set; }
-        private static Graph NewGraph { get; set; }
         public JohnsonAlgorithm(Graph Graph)
         {
             MatrixOfShortesPathes = new double[Graph.NumberOfNodes + 1, Graph.NumberOfNodes + 1];
 
             CopiedGraph = (Graph)Graph.Clone();
 
-            NewGraph = (Graph)Graph.Clone();
+            CopyOfOriginalGraph = (Graph)Graph.Clone();
         }
-        public void JohnsonPathSearch()
+        public bool JohnsonPathSearch()
         {
-            for (int FirstIndex = 0; FirstIndex < CopiedGraph.NumberOfNodes; FirstIndex++)
+            CopiedGraph.AddNode(new Node(CopiedGraph.NumberOfNodes,"Temporary"));
+
+            for(int Index = 0; Index < CopiedGraph.NumberOfNodes - 1; Index++)
             {
-                DijkstraPathSearch = new DijkstraAlgorithm(CopiedGraph);
+                CopiedGraph.AddTwoWayEdge(new Edge(0,CopiedGraph.SetOfNodes[CopiedGraph.NumberOfNodes - 1],CopiedGraph.SetOfNodes[Index]));
+            }
 
-                DijkstraPathSearch.DijkstraPathSearch(CopiedGraph.SetOfNodes[FirstIndex]);
+            BellmanFordPathSearch = new BellmanFordAlgorithm(CopiedGraph);
 
-                for (int SecondIndex = 0; SecondIndex < CopiedGraph.NumberOfNodes; SecondIndex++)
+            if(BellmanFordPathSearch.BellmanFordPathSearch(CopiedGraph.SetOfNodes[CopiedGraph.NumberOfNodes - 1]))
+            {
+                for(int FirstIndex = 0; FirstIndex < CopyOfOriginalGraph.NumberOfNodes; FirstIndex++)
                 {
-                    MatrixOfShortesPathes[FirstIndex,SecondIndex] = DijkstraPathSearch.Pathes[SecondIndex].WeightOfNode;
+                    DijkstraPathSearch = new DijkstraAlgorithm(CopyOfOriginalGraph);
+
+                    DijkstraPathSearch.DijkstraPathSearch(CopyOfOriginalGraph.SetOfNodes[FirstIndex]);
+
+                    for(int SecondIndex = 0; SecondIndex < CopyOfOriginalGraph.NumberOfNodes; SecondIndex++)
+                    {
+                        MatrixOfShortesPathes[FirstIndex, SecondIndex] = DijkstraPathSearch.Pathes[SecondIndex].WeightOfNode;
+                    }
+                }
+
+                return true;
+            }
+            else
+            {
+                for(int Index = 0; Index < CopyOfOriginalGraph.NumberOfEdges; Index++)
+                {
+                    CopyOfOriginalGraph.SetOfEdges[Index].WeightOfEdge = CopyOfOriginalGraph.SetOfEdges[Index].WeightOfEdge + BellmanFordPathSearch.Pathes[CopyOfOriginalGraph.SetOfEdges[Index][0].IndexOfNode].WeightOfNode - BellmanFordPathSearch.Pathes[CopyOfOriginalGraph.SetOfEdges[Index][1].IndexOfNode].WeightOfNode;
+                }
+
+                for(int FirstIndex = 0; FirstIndex < CopyOfOriginalGraph.NumberOfNodes; FirstIndex++)
+                {
+                    DijkstraPathSearch = new DijkstraAlgorithm(CopyOfOriginalGraph);
+
+                    DijkstraPathSearch.DijkstraPathSearch(CopyOfOriginalGraph.SetOfNodes[FirstIndex]);
+
+                    for (int SecondIndex = 0; SecondIndex < CopyOfOriginalGraph.NumberOfNodes; SecondIndex++)
+                    {
+                        MatrixOfShortesPathes[FirstIndex, SecondIndex] = DijkstraPathSearch.Pathes[SecondIndex].WeightOfNode;
+                    }
                 }
             }
+
+            return true;
         }
     }
+
+    public class FordFulkersonalgorithm
+    { }
+
     class Program
     {
         private static Graph Graph = new Graph();
@@ -684,17 +771,17 @@ namespace Graphs
 
             BellmanFordAlgorithm BellmanFordPathSearch = new BellmanFordAlgorithm(Graph);
 
-            BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[0]);
+            Console.WriteLine($"Doesn't contain negative cycle : {BellmanFordPathSearch.BellmanFordPathSearch(Graph.SetOfNodes[0])}\n");
 
             Console.Write($"{Graph.SetOfNodes[0].NameOfNode} => ");
 
             Console.WriteLine(string.Join($"{Graph.SetOfNodes[0].NameOfNode} => ", BellmanFordPathSearch.Pathes.Select(Nodes => Nodes.NameOfNode + $" = {Nodes.WeightOfNode}\n")));
 
+            Console.WriteLine("6 : Dijkstra Path Search\n");
+
             DijkstraAlgorithm DijkstraPathSearch = new DijkstraAlgorithm(Graph);
 
-            DijkstraPathSearch.DijkstraPathSearch(Graph.SetOfNodes[0]);
-
-            Console.WriteLine("6 : Dijkstra Path Search\n");
+            Console.WriteLine($"Doesn't contain negative cycle : {DijkstraPathSearch.DijkstraPathSearch(Graph.SetOfNodes[0])}\n");
 
             Console.Write($"{Graph.SetOfNodes[0].NameOfNode} => ");
 
