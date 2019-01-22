@@ -35,6 +35,7 @@ namespace Graphs
 
             IndexOfNode = 0;
         }
+
         public override bool Equals(object Object)
         {
             Node Node = (Node)Object;
@@ -43,6 +44,7 @@ namespace Graphs
         }
         public double WeightOfNode { get; set; }
         public string NameOfNode { get; set; }
+
         public override int GetHashCode()
         {
             return base.GetHashCode();
@@ -147,17 +149,6 @@ namespace Graphs
 
     public class Graph : ICloneable
     {
-        public List<Edge> ConvertSetOfNodesToSetOfEdges(List<Node> Nodes)
-        {
-            List<Edge> Edges = new List<Edge>();
-
-            for (int FirstIndex = 0, SecondIndex = FirstIndex + 1; SecondIndex < Nodes.Count; FirstIndex++)
-            {
-                Edges.Add(new Edge(0, Nodes[FirstIndex], Nodes[SecondIndex]));
-            }
-
-            return Edges;
-        }
         public Edge GetEdge(Node TheBeginningOfEdge, Node TheEndOfEdge)
         {
             for (int Index = 0; Index < NumberOfEdges; Index++)
@@ -260,7 +251,7 @@ namespace Graphs
         {
             VisitedNodes.Add(TheBeginningOfSearching);
 
-            if (VisitedNodes.Contains(TheEndOfSearching))
+            if (TheBeginningOfSearching.Equals(TheEndOfSearching))
             {
                 return true;
             }
@@ -269,6 +260,8 @@ namespace Graphs
             {
                 if (AuxiliaryGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(AuxiliaryGraph.SetOfNodes[Index]))
                 {
+                    ResultOfSearching.Add(new Edge(0, TheBeginningOfSearching, AuxiliaryGraph.SetOfNodes[Index]));
+
                     if (DFS(AuxiliaryGraph.SetOfNodes[Index], TheEndOfSearching))
                     {
                         return true;
@@ -286,6 +279,8 @@ namespace Graphs
             {
                 if (AuxiliaryGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(AuxiliaryGraph.SetOfNodes[Index]))
                 {
+                    ResultOfSearching.Add(new Edge(0, TheBeginningOfSearching, AuxiliaryGraph.SetOfNodes[Index]));
+
                     DFS(AuxiliaryGraph.SetOfNodes[Index]);
                 }
             }
@@ -296,9 +291,12 @@ namespace Graphs
         {
             AuxiliaryGraph = (Graph)Graph.Clone();
 
+            ResultOfSearching = new List<Edge>();
+
             VisitedNodes = new List<Node>();
         }
         private static Graph AuxiliaryGraph { get; set; }
+        public List<Edge> ResultOfSearching { get; }
         public List<Node> VisitedNodes { get; }
     }
 
@@ -318,7 +316,9 @@ namespace Graphs
                 {
                     if (AuxiliaryGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(AuxiliaryGraph.SetOfNodes[Index]))
                     {
-                        if (VisitedNodes.Contains(TheEndOfSearching))
+                        ResultOfSearching.Add(new Edge(0, TheBeginningOfSearching, AuxiliaryGraph.SetOfNodes[Index]));
+
+                        if (AuxiliaryGraph.SetOfNodes[Index].Equals(TheEndOfSearching))
                         {
                             return true;
                         }
@@ -338,6 +338,8 @@ namespace Graphs
 
             AuxiliaryGraph = (Graph)Graph.Clone();
 
+            ResultOfSearching = new List<Edge>();
+
             VisitedNodes = new List<Node>();
         }
         public bool BFS(Node TheBeginningOfSearching)
@@ -354,6 +356,8 @@ namespace Graphs
                 {
                     if (AuxiliaryGraph.SetOfNodes[TheBeginningOfSearching.IndexOfNode].Inheritors[Index].Equals(true) && !VisitedNodes.Contains(AuxiliaryGraph.SetOfNodes[Index]))
                     {
+                        ResultOfSearching.Add(new Edge(0, TheBeginningOfSearching, AuxiliaryGraph.SetOfNodes[Index]));
+
                         QueuedNodes.Enqueue(AuxiliaryGraph.SetOfNodes[Index]);
 
                         VisitedNodes.Add(AuxiliaryGraph.SetOfNodes[Index]);
@@ -365,7 +369,8 @@ namespace Graphs
         }
         private static Graph AuxiliaryGraph { get; set; }
         private Queue<Node> QueuedNodes { get; }
-        public List<Node> VisitedNodes { get; }
+        public List<Edge> ResultOfSearching { get; }
+        private List<Node> VisitedNodes { get; }
     }
 
     public class KruscalAlgorithm
@@ -715,30 +720,6 @@ namespace Graphs
 
     public class FordFulkersonAlgorithm
     {
-        public bool FoedFulkersonStreamSearch(Node TheBeginningOfSearching, Node TheEndOfSearching)
-        {
-            for(;BFS.BFS(TheBeginningOfSearching,TheEndOfSearching);)
-            {
-                Node TemporaryNode = new Node { WeightOfNode = Infinity};
-
-                for(int FirstIndex = 0, SecondIndex = FirstIndex + 1; SecondIndex < BFS.VisitedNodes.Count; FirstIndex++)
-                {
-                    if(CopyOfOriginalGraph.GetEdge(BFS.VisitedNodes[FirstIndex],BFS.VisitedNodes[SecondIndex]).WeightOfEdge < TemporaryNode.WeightOfNode)
-                    {
-                        TemporaryNode.WeightOfNode = CopyOfOriginalGraph.GetEdge(BFS.VisitedNodes[FirstIndex], BFS.VisitedNodes[SecondIndex]).WeightOfEdge;
-                    }
-                }
-
-                //for(int FirstIndex = 0, SecondIndex = FirstIndex + 1; SecondIndex < BFS.VisitedNodes.Count; FirstIndex++)
-                //{
-                //    Edge TemporaryEdge = CopyOfOriginalGraph.GetEdge(BFS.VisitedNodes[FirstIndex],BFS.VisitedNodes[SecondIndex]);
-
-                //    BFS.VisitedNodes[FirstIndex]
-                //}
-            }
-
-            return true;
-        }
         private static BreadthFirstSearchAlgorithm BFS { get; set; }
         private static Graph CopyOfOriginalGraph { get; set; }
         public double MaximumStream { get; private set; }
@@ -798,7 +779,7 @@ namespace Graphs
 
             Console.WriteLine($"[1 : Depth First Search]\n\n[All nodes were visited : {DFS.DFS(Graph.SetOfNodes[0])}]\n");
 
-            Console.WriteLine(string.Join(" => ", DFS.VisitedNodes.Select(Vertex => Vertex.NameOfNode)));
+            Console.WriteLine(string.Join(" => ", DFS.ResultOfSearching.Select(Edge => Edge.NameOfEdge)));
 
             Console.WriteLine();
 
@@ -806,7 +787,7 @@ namespace Graphs
 
             Console.WriteLine($"[2 : Breadth First Search]\n\n[All nodes were visited : {BFS.BFS(Graph.SetOfNodes[0])}]\n");
 
-            Console.WriteLine(string.Join(" => ", BFS.VisitedNodes.Select(Vertex => Vertex.NameOfNode)));
+            Console.WriteLine(string.Join(" => ", BFS.ResultOfSearching.Select(Edge => Edge.NameOfEdge)));
 
             Console.WriteLine();
 
