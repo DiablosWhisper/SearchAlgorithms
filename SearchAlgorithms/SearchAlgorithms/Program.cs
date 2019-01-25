@@ -225,7 +225,7 @@ namespace Graphs
 
     public class DepthFirstSearchAlgorithm
     {
-        public bool FordFulkersonDepthFirstSearch(Node Start, Node Target, Node[] FoundPath)
+        public bool DepthFirstSearch(Node Start, Node Target, Node[] FoundPath)
         {
             VisitedNodes.Add(Start);
 
@@ -240,7 +240,7 @@ namespace Graphs
                 {
                     FoundPath[Index] = Start;
 
-                    if (FordFulkersonDepthFirstSearch(InnerGraph.SetOfNodes[Index], Target, FoundPath))
+                    if (DepthFirstSearch(InnerGraph.SetOfNodes[Index], Target, FoundPath))
                     {
                         return true;
                     }
@@ -304,7 +304,7 @@ namespace Graphs
 
     public class BreadthFirstSearchAlgorithm
     {
-        public bool FordFulkersonBreadthFirstSearch(Node Start, Node Target, Node[] FoundPath)
+        public bool BreadthFirstSearch(Node Start, Node Target, Node[] FoundPath)
         {
             Queue.Enqueue(Start);
 
@@ -753,7 +753,7 @@ namespace Graphs
         {
             Node TemporaryNode = new Node();
 
-            for (; DepthFirstSearch.FordFulkersonDepthFirstSearch(Start, Target, FoundPath);)
+            for (; DepthFirstSearch.DepthFirstSearch(Start, Target, FoundPath);)
             {
                 double CurrentStreamCapacity = Infinity;
 
@@ -782,7 +782,7 @@ namespace Graphs
         {
             Node TemporaryNode = new Node();
 
-            for (; BreadthFirstSearch.FordFulkersonBreadthFirstSearch(Start, Target, FoundPath);)
+            for (; BreadthFirstSearch.BreadthFirstSearch(Start, Target, FoundPath);)
             {
                 double CurrentStreamCapacity = Infinity;
 
