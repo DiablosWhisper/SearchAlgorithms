@@ -225,7 +225,7 @@ namespace Graphs
 
     public class DepthFirstSearchAlgorithm
     {
-        public bool FordFulkersonDepthFirstSearch(Node Start, Node Target)
+        public bool FordFulkersonDepthFirstSearch(Node Start, Node Target, Node[] FoundPath)
         {
             VisitedNodes.Add(Start);
 
@@ -238,9 +238,9 @@ namespace Graphs
             {
                 if (InnerGraph.SetOfNodes[Start.Index].Connections[Index].Equals(true) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight != double.PositiveInfinity && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight > 0)
                 {
-                    ResultOfSearching.Add(InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]));
+                    FoundPath[Index] = Start;
 
-                    if (DepthFirstSearch(InnerGraph.SetOfNodes[Index], Target))
+                    if (FordFulkersonDepthFirstSearch(InnerGraph.SetOfNodes[Index], Target, FoundPath))
                     {
                         return true;
                     }
@@ -304,7 +304,7 @@ namespace Graphs
 
     public class BreadthFirstSearchAlgorithm
     {
-        public bool BreadthFirstSearch(Node Start, Node Target, Node[] FoundPath)
+        public bool FordFulkersonBreadthFirstSearch(Node Start, Node Target, Node[] FoundPath)
         {
             Queue.Enqueue(Start);
 
@@ -751,20 +751,24 @@ namespace Graphs
     {
         public bool FordFulkersonStreamSearchWithDFS(Node Start, Node Target)
         {
-            for (; DepthFirstSearch.FordFulkersonDepthFirstSearch(Start, Target);)
+            Node TemporaryNode = new Node();
+
+            for (; DepthFirstSearch.FordFulkersonDepthFirstSearch(Start, Target, FoundPath);)
             {
                 double CurrentStreamCapacity = Infinity;
 
-                for (int Index = 0; Index < DepthFirstSearch.ResultOfSearching.Count; Index++)
+                for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    CurrentStreamCapacity = Math.Min(DepthFirstSearch.ResultOfSearching[Index].Weight, CurrentStreamCapacity);
+                    TemporaryNode = FoundPath[Index];
+
+                    CurrentStreamCapacity = Math.Min(CurrentStreamCapacity, InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight);
                 }
 
-                for (int Index = 0; Index < DepthFirstSearch.ResultOfSearching.Count; Index++)
+                for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    InnerGraph.FindEdge(DepthFirstSearch.ResultOfSearching[Index][0], DepthFirstSearch.ResultOfSearching[Index][1]).Weight -= CurrentStreamCapacity;
+                    InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight -= CurrentStreamCapacity;
 
-                    InnerGraph.FindEdge(DepthFirstSearch.ResultOfSearching[Index][1], DepthFirstSearch.ResultOfSearching[Index][0]).Weight += CurrentStreamCapacity;
+                    InnerGraph.FindEdge(InnerGraph.SetOfNodes[Index], TemporaryNode).Weight += CurrentStreamCapacity;
                 }
 
                 CapacityOfStream += CurrentStreamCapacity;
@@ -778,7 +782,7 @@ namespace Graphs
         {
             Node TemporaryNode = new Node();
 
-            for (; BreadthFirstSearch.BreadthFirstSearch(Start, Target, FoundPath);)
+            for (; BreadthFirstSearch.FordFulkersonBreadthFirstSearch(Start, Target, FoundPath);)
             {
                 double CurrentStreamCapacity = Infinity;
 
@@ -1000,7 +1004,7 @@ namespace Graphs
 
             FordFulkersonAlgorithm FordFulkersonStreamSearch = new FordFulkersonAlgorithm(NewGraph);
 
-            FordFulkersonStreamSearch.FordFulkersonStreamSearchWithBFS(NewGraph.SetOfNodes[0], NewGraph.SetOfNodes[NewGraph.SetOfNodes.Count - 1]);
+            FordFulkersonStreamSearch.FordFulkersonStreamSearchWithDFS(NewGraph.SetOfNodes[0], NewGraph.SetOfNodes[NewGraph.SetOfNodes.Count - 1]);
 
             Console.WriteLine($"Maximum stream capacity is : {FordFulkersonStreamSearch.CapacityOfStream}");
 
