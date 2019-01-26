@@ -1,6 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Linq;
+using System;
 
 namespace Graphs
 {
@@ -16,12 +16,15 @@ namespace Graphs
 
             Index = 0;
         }
+        public double HeuristicPathWeight { get; set; }
+        public double GainedPathWeight { get; set; }
         public override bool Equals(object Object)
         {
             Node Node = (Node)Object;
 
             return this.Name.Equals(Node.Name);
         }
+        public double FinalPathWeight { get; set; }
         public bool[] Connections { get; set; }
         public override int GetHashCode()
         {
@@ -47,13 +50,19 @@ namespace Graphs
         }
         public Node()
         {
+            HeuristicPathWeight = 0.0;
+
+            GainedPathWeight = 0.0;
+
+            FinalPathWeight = 0.0;
+
             Name = string.Empty;
+
+            Connections = null;
 
             Weight = 0.0;
 
             Index = 0;
-
-            Connections = null;
         }
     }
 
@@ -235,7 +244,7 @@ namespace Graphs
 
             for (int Index = 0; Index < InnerGraph.NumberOfNodes; Index++)
             {
-                if (InnerGraph.SetOfNodes[Start.Index].Connections[Index].Equals(true) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight != double.PositiveInfinity && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight > 0)
+                if (InnerGraph.SetOfNodes[Start.Index].Connections[Index].Equals(true) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight > 0)
                 {
                     FoundPath[Index] = Start;
 
@@ -270,7 +279,7 @@ namespace Graphs
                 }
             }
 
-            return false;
+            return VisitedNodes.Contains(Target);
         }
         public DepthFirstSearchAlgorithm(Graph Graph)
         {
@@ -311,13 +320,18 @@ namespace Graphs
 
             FoundPath[Start.Index] = Start;
 
+            if (VisitedNodes.Contains(Target))
+            {
+                return true;
+            }
+
             for (; Queue.Count > 0;)
             {
                 Start = Queue.Dequeue();
 
                 for (int Index = 0; Index < InnerGraph.NumberOfNodes; Index++)
                 {
-                    if (InnerGraph.SetOfNodes[Start.Index].Connections[Index].Equals(true) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight != double.PositiveInfinity && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight > 0)
+                    if (InnerGraph.SetOfNodes[Start.Index].Connections[Index].Equals(true) && !VisitedNodes.Contains(InnerGraph.SetOfNodes[Index]) && InnerGraph.FindEdge(Start, InnerGraph.SetOfNodes[Index]).Weight > 0)
                     {
                         FoundPath[Index] = Start;
 
@@ -335,6 +349,11 @@ namespace Graphs
             Queue.Enqueue(Start);
 
             VisitedNodes.Add(Start);
+
+            if (VisitedNodes.Contains(Target))
+            {
+                return true;
+            }
 
             for (; Queue.Count > 0;)
             {
@@ -750,6 +769,11 @@ namespace Graphs
     {
         public bool FindMaximumFlowWithDFSRealization(Node Start, Node Target)
         {
+            if (Start.Equals(Target))
+            {
+                CapacityOfFlow = 0.0;
+            }
+
             Node TemporaryNode = new Node();
 
             for (; DepthFirstSearch.DepthFirstSearch(Start, Target, FoundPath);)
@@ -779,6 +803,11 @@ namespace Graphs
         }
         public bool FindMaximumFlowWithBFSRealization(Node Start, Node Target)
         {
+            if (Start.Equals(Target))
+            {
+                CapacityOfFlow = 0.0;
+            }
+
             Node TemporaryNode = new Node();
 
             for (; BreadthFirstSearch.BreadthFirstSearch(Start, Target, FoundPath);)
@@ -828,6 +857,27 @@ namespace Graphs
         private double Infinity { get; set; }
     }
 
+    public class AStarAlgorithm
+    {
+        public bool FindTheShortesPath(Node Start, Node Target)
+        {
+            OpenSet.Add(Start);
+
+            return true;
+        }
+        private static Graph InnerGraph { get; set; }
+        private List<Node> ClosedSet { get; set; }
+        private List<Node> OpenSet { get; set; }
+        public AStarAlgorithm(Graph Graph)
+        {
+            InnerGraph = (Graph)Graph.Clone();
+
+            ClosedSet = new List<Node>();
+
+            OpenSet = new List<Node>();
+        }
+    }
+
     class Program
     {
         private static Graph Graph = new Graph();
@@ -870,11 +920,11 @@ namespace Graphs
             Console.WriteLine(" 6 \\    /      \\");
             Console.WriteLine("    \\  /        \\");
             Console.WriteLine("    [5]---------[6]");
-            Console.WriteLine("           11");
+            Console.WriteLine("           11\n");
 
             DepthFirstSearchAlgorithm DFS = new DepthFirstSearchAlgorithm(Graph);
 
-            Console.WriteLine($"[1 : Depth First Search]\n\n[All nodes were visited : {DFS.DepthFirstSearch(Graph.SetOfNodes[0])}]\n");
+            Console.WriteLine($"[1 : Depth First Search]\n\n[All nodes were visited : {DFS.DepthFirstSearch(Graph.SetOfNodes[0], Graph.SetOfNodes[1])}]\n");
 
             Console.WriteLine(string.Join(" => ", DFS.ResultOfSearching.Select(Edge => Edge.Name)));
 
