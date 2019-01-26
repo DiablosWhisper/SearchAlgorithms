@@ -10,9 +10,9 @@ namespace Graphs
         {
             Connections = new bool[NumberOfInheritors + 1];
 
-            this.Name = $"[{Name}]";
+            Weight = double.PositiveInfinity;
 
-            Weight = 0.0;
+            this.Name = $"[{Name}]";
 
             Index = 0;
         }
@@ -50,6 +50,8 @@ namespace Graphs
         }
         public Node()
         {
+            Weight = double.PositiveInfinity;
+
             HeuristicPathWeight = 0.0;
 
             GainedPathWeight = 0.0;
@@ -59,8 +61,6 @@ namespace Graphs
             Name = string.Empty;
 
             Connections = null;
-
-            Weight = 0.0;
 
             Index = 0;
         }
@@ -289,7 +289,6 @@ namespace Graphs
 
             VisitedNodes = new List<Node>();
         }
-        public List<Edge> ResultOfSearching { get; }
         public bool DepthFirstSearch(Node Start)
         {
             VisitedNodes.Add(Start);
@@ -306,6 +305,7 @@ namespace Graphs
 
             return VisitedNodes.Count.Equals(InnerGraph.NumberOfNodes);
         }
+        public List<Edge> ResultOfSearching { get; }
         private static Graph InnerGraph { get; set; }
         private List<Node> VisitedNodes { get; }
     }
@@ -377,7 +377,7 @@ namespace Graphs
                 }
             }
 
-            return false;
+            return VisitedNodes.Contains(Target);
         }
         public BreadthFirstSearchAlgorithm(Graph Graph)
         {
@@ -448,6 +448,12 @@ namespace Graphs
 
             return true;
         }
+        public KruscalAlgorithm(Graph Graph)
+        {
+            MinimumSpanningTree = new List<Edge>();
+
+            InnerGraph = (Graph)Graph.Clone();
+        }
         private Node FindSubTree(Node Root)
         {
             Node OldNode = new Node();
@@ -469,12 +475,6 @@ namespace Graphs
             }
 
             return RootOfTree;
-        }
-        public KruscalAlgorithm(Graph Graph)
-        {
-            MinimumSpanningTree = new List<Edge>();
-
-            InnerGraph = (Graph)Graph.Clone();
         }
         private void SortGraph()
         {
@@ -565,11 +565,6 @@ namespace Graphs
         public List<Node> ShortestPathes { get; private set; }
         public bool FindTheShortestPathes(Node Start)
         {
-            for (int Index = 0; Index < InnerGraph.NumberOfNodes; Index++)
-            {
-                ShortestPathes[Index].Weight = Infinity;
-            }
-
             ShortestPathes[Start.Index].Weight = 0;
 
             for (int FirstIndex = 1; FirstIndex < InnerGraph.NumberOfNodes - 1; FirstIndex++)
@@ -599,24 +594,17 @@ namespace Graphs
         public List<Node> ShortestPathes { get; private set; }
         public bool FindTheShortestPathes(Node Start)
         {
-            for (int Index = 0; Index < InnerGraph.NumberOfNodes; Index++)
-            {
-                ShortestPathes[Index].Weight = Infinity;
-            }
-
             ShortestPathes[Start.Index].Weight = 0;
 
             for (int FirstIndex = 0; FirstIndex < InnerGraph.NumberOfNodes - 1; FirstIndex++)
             {
-                Node TemporaryNode = new Node { Weight = Infinity };
-
-                TemporaryNode.Weight = Infinity;
+                Node CurrentNode = new Node();
 
                 for (int SecondIndex = 0; SecondIndex < InnerGraph.NumberOfNodes; SecondIndex++)
                 {
-                    if (!VisitedNodes.Contains(ShortestPathes[SecondIndex]) && ShortestPathes[SecondIndex].Weight <= TemporaryNode.Weight)
+                    if (!VisitedNodes.Contains(ShortestPathes[SecondIndex]) && ShortestPathes[SecondIndex].Weight <= CurrentNode.Weight)
                     {
-                        TemporaryNode = ShortestPathes[SecondIndex];
+                        CurrentNode = ShortestPathes[SecondIndex];
 
                         Index = ShortestPathes[SecondIndex].Index;
                     }
@@ -636,7 +624,6 @@ namespace Graphs
             return InnerGraph.NegativeCycleChecker(ShortestPathes);
         }
         private static Graph InnerGraph { get; set; }
-        private List<Node> VisitedNodes { get; }
         public DijkstraAlgorithm(Graph Graph)
         {
             InnerGraph = (Graph)Graph.Clone();
@@ -647,6 +634,7 @@ namespace Graphs
 
             Infinity = double.PositiveInfinity;
         }
+        private List<Node> VisitedNodes { get; }
         private double Infinity { get; set; }
         private int Index { get; set; }
     }
@@ -678,7 +666,7 @@ namespace Graphs
             }
         }
         private static Graph InnerGraph { get; set; }
-        public void FindAllTheShortestPathes()
+        public bool FindAllTheShortestPathes()
         {
             for (int Index = 0; Index < InnerGraph.NumberOfNodes; Index++)
             {
@@ -695,6 +683,8 @@ namespace Graphs
                     }
                 }
             }
+
+            return true;
         }
         private double Infinity { get; set; }
     }
@@ -772,9 +762,11 @@ namespace Graphs
             if (Start.Equals(Target))
             {
                 CapacityOfFlow = 0.0;
+
+                return true;
             }
 
-            Node TemporaryNode = new Node();
+            Node CurrentNode = new Node();
 
             for (; DepthFirstSearch.DepthFirstSearch(Start, Target, FoundPath);)
             {
@@ -782,16 +774,16 @@ namespace Graphs
 
                 for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    TemporaryNode = FoundPath[Index];
+                    CurrentNode = FoundPath[Index];
 
-                    CurrentStreamCapacity = Math.Min(CurrentStreamCapacity, InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight);
+                    CurrentStreamCapacity = Math.Min(CurrentStreamCapacity, InnerGraph.FindEdge(CurrentNode, InnerGraph.SetOfNodes[Index]).Weight);
                 }
 
                 for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight -= CurrentStreamCapacity;
+                    InnerGraph.FindEdge(CurrentNode, InnerGraph.SetOfNodes[Index]).Weight -= CurrentStreamCapacity;
 
-                    InnerGraph.FindEdge(InnerGraph.SetOfNodes[Index], TemporaryNode).Weight += CurrentStreamCapacity;
+                    InnerGraph.FindEdge(InnerGraph.SetOfNodes[Index], CurrentNode).Weight += CurrentStreamCapacity;
                 }
 
                 CapacityOfFlow += CurrentStreamCapacity;
@@ -806,9 +798,11 @@ namespace Graphs
             if (Start.Equals(Target))
             {
                 CapacityOfFlow = 0.0;
+
+                return true;
             }
 
-            Node TemporaryNode = new Node();
+            Node CurrentNode = new Node();
 
             for (; BreadthFirstSearch.BreadthFirstSearch(Start, Target, FoundPath);)
             {
@@ -816,16 +810,16 @@ namespace Graphs
 
                 for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    TemporaryNode = FoundPath[Index];
+                    CurrentNode = FoundPath[Index];
 
-                    CurrentStreamCapacity = Math.Min(CurrentStreamCapacity, InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight);
+                    CurrentStreamCapacity = Math.Min(CurrentStreamCapacity, InnerGraph.FindEdge(CurrentNode, InnerGraph.SetOfNodes[Index]).Weight);
                 }
 
                 for (int Index = Target.Index; Index != Start.Index; Index = FoundPath[Index].Index)
                 {
-                    InnerGraph.FindEdge(TemporaryNode, InnerGraph.SetOfNodes[Index]).Weight -= CurrentStreamCapacity;
+                    InnerGraph.FindEdge(CurrentNode, InnerGraph.SetOfNodes[Index]).Weight -= CurrentStreamCapacity;
 
-                    InnerGraph.FindEdge(InnerGraph.SetOfNodes[Index], TemporaryNode).Weight += CurrentStreamCapacity;
+                    InnerGraph.FindEdge(InnerGraph.SetOfNodes[Index], CurrentNode).Weight += CurrentStreamCapacity;
                 }
 
                 CapacityOfFlow += CurrentStreamCapacity;
@@ -863,6 +857,22 @@ namespace Graphs
         {
             OpenSet.Add(Start);
 
+            Node CurrentNode = new Node();
+
+            for (; OpenSet.Count > 0;)
+            {
+                CurrentNode = FindMinWeightNode();
+
+                OpenSet.Remove(CurrentNode);
+
+                ClosedSet.Add(CurrentNode);
+
+                if(CurrentNode.Equals(Target))
+                {
+                    return true;
+                }
+            }
+
             return true;
         }
         private static Graph InnerGraph { get; set; }
@@ -875,6 +885,20 @@ namespace Graphs
             ClosedSet = new List<Node>();
 
             OpenSet = new List<Node>();
+        }
+        private Node FindMinWeightNode()
+        {
+            Node TemporaryNode = new Node();
+
+            for(int Index = 0; Index < OpenSet.Count; Index++)
+            {
+                if(TemporaryNode.Weight > OpenSet[Index].Weight)
+                {
+                    TemporaryNode = OpenSet[Index];
+                }
+            }
+
+            return TemporaryNode;
         }
     }
 
@@ -1053,7 +1077,7 @@ namespace Graphs
 
             FordFulkersonAlgorithm FordFulkersonStreamSearch = new FordFulkersonAlgorithm(NewGraph);
 
-            FordFulkersonStreamSearch.FindMaximumFlowWithDFSRealization(NewGraph.SetOfNodes[0], NewGraph.SetOfNodes[NewGraph.SetOfNodes.Count - 1]);
+            FordFulkersonStreamSearch.FindMaximumFlowWithDFSRealization(NewGraph.SetOfNodes[0], NewGraph.SetOfNodes[NewGraph.NumberOfNodes - 1]);
 
             Console.WriteLine($"Maximum stream capacity is : {FordFulkersonStreamSearch.CapacityOfFlow}");
 
