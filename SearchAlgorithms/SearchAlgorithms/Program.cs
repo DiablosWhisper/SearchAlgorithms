@@ -924,7 +924,7 @@ namespace Graphs
 
             DepthFirstSearchAlgorithm DFS = new DepthFirstSearchAlgorithm(Graph);
 
-            Console.WriteLine($"[1 : Depth First Search]\n\n[All nodes were visited : {DFS.DepthFirstSearch(Graph.SetOfNodes[0], Graph.SetOfNodes[1])}]\n");
+            Console.WriteLine($"[1 : Depth First Search]\n\n[All nodes were visited : {DFS.DepthFirstSearch(Graph.SetOfNodes[0])}]\n");
 
             Console.WriteLine(string.Join(" => ", DFS.ResultOfSearching.Select(Edge => Edge.Name)));
 
