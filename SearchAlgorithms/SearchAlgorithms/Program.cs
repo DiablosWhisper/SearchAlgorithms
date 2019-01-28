@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using Console = Colorful.Console;
 using System.Drawing;
 using System.Linq;
@@ -109,6 +109,7 @@ namespace Graphs
         public Coordinate Coordinate { get; private set; }
         public double HeuristicPathWeight { get; set; }
         public double GainedPathWeight { get; set; }
+
         public override bool Equals(object Object)
         {
             Node Node = (Node)Object;
@@ -116,6 +117,7 @@ namespace Graphs
             return this.Name.Equals(Node.Name);
         }
         public double TotalPathWeight { get; set; }
+
         public override int GetHashCode()
         {
             return base.GetHashCode();
@@ -273,8 +275,6 @@ namespace Graphs
             }
             return true;
         }
-        public List<Node> SetOfNodes { get; private set; }
-        public List<Edge> SetOfEdges { get; set; }
         public Edge FindEdge(params Node[] Nodes)
         {
             for (int Index = 0; Index < NumberOfEdges; Index++)
@@ -303,6 +303,8 @@ namespace Graphs
 
             SetOfEdges[SetOfEdges.Count - 1].Index = SetOfEdges.Count - 1;
         }
+        public List<Node> SetOfNodes { get; set; }
+        public List<Edge> SetOfEdges { get; set; }
         public void AddNode(Node Node)
         {
             SetOfNodes.Add(Node);
